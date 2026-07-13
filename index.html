@@ -961,7 +961,22 @@
 
   if ("serviceWorker" in navigator){
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => {});
+      navigator.serviceWorker.register("sw.js").then((reg) => {
+        // Forza subito un controllo aggiornamenti, invece di aspettare
+        // il ciclo automatico (più lento) del browser.
+        reg.update().catch(() => {});
+      }).catch(() => {});
+    });
+
+    // Quando una nuova versione del service worker prende il controllo
+    // della pagina, ricarica automaticamente una sola volta per mostrare
+    // subito i file aggiornati (altrimenti servirebbe riaprire la app
+    // due volte prima di vedere l'aggiornamento).
+    let swRefreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (swRefreshing) return;
+      swRefreshing = true;
+      window.location.reload();
     });
   }
 })();
