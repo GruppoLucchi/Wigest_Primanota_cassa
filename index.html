@@ -960,12 +960,24 @@
   });
 
   if ("serviceWorker" in navigator){
+    let swRegistration = null;
+
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("sw.js").then((reg) => {
+        swRegistration = reg;
         // Forza subito un controllo aggiornamenti, invece di aspettare
         // il ciclo automatico (più lento) del browser.
         reg.update().catch(() => {});
       }).catch(() => {});
+    });
+
+    // Ricontrolla gli aggiornamenti anche quando la app torna in primo
+    // piano (es. l'utente la riapre dal multitasking senza chiuderla del
+    // tutto), non solo al primo avvio.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && swRegistration){
+        swRegistration.update().catch(() => {});
+      }
     });
 
     // Quando una nuova versione del service worker prende il controllo
